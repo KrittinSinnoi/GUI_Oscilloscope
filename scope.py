@@ -110,7 +110,7 @@ class ScopeController:
             f.write(data)
 
         return filename
-    
+
     def log(self, text):
         if self.log_callback:
             self.log_callback(text)
@@ -618,61 +618,3 @@ class ScopeGUI:
             padx=5,
             pady=(5,0)
         )
-
-    def add_log(self, text): #เพิ่มข้อความลงใน log
-            self.log_text.config(state="normal")
-            self.log_text.insert(tk.END, text + "\n")
-            self.log_text.see(tk.END)
-            self.log_text.config(state="disabled")
-        
-    def capture_screen(self): #บันทึกภาพหน้าจอจาก oscilloscope และแสดงข้อความใน status
-        try:
-            if self.scope.scope is None:
-                self.status.config(
-                    text="Please Connect First",
-                    fg="red"
-                )
-                return
-
-            filename = self.scope.capture_screen()
-
-            self.status.config(
-                text=f"Saved : {filename}",
-                fg="green"
-            )
-
-        except Exception as e:
-            self.status.config(
-                text=str(e),
-                fg="red"
-            )
-
-    def channel_select(self, channel):
-        if channel == 1:
-            checked = "ON" if self.channel_var1.get() else "OFF"
-            self.checkbox1.config(text=f"Channel {channel}: {checked}")
-            self.scope.write(f":CHANnel{channel}:DISPlay {'ON' if self.channel_var1.get() else 'OFF'}")
-        elif channel == 2:
-            checked = "ON" if self.channel_var2.get() else "OFF"
-            self.checkbox2.config(text=f"Channel {channel}: {checked}")
-            self.scope.write(f":CHANnel{channel}:DISPlay {'ON' if self.channel_var2.get() else 'OFF'}")
-        elif channel == 3:
-            checked = "ON" if self.channel_var3.get() else "OFF"
-            self.checkbox3.config(text=f"Channel {channel}: {checked}")
-            self.scope.write(f":CHANnel{channel}:DISPlay {'ON' if self.channel_var3.get() else 'OFF'}")
-        elif channel == 4:
-            checked = "ON" if self.channel_var4.get() else "OFF"
-            self.checkbox4.config(text=f"Channel {channel}: {checked}")
-            self.scope.write(f":CHANnel{channel}:DISPlay {'ON' if self.channel_var4.get() else 'OFF'}")
-
-    def run(self):
-        self.root.mainloop()
-
-    
-
-def main():
-    scope = ScopeGUI()
-    scope.run()
-
-if __name__ == "__main__":
-    main()
