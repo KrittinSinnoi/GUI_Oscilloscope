@@ -35,9 +35,10 @@ class ScopeController:
             self.rm.close()
         self.rm = None
 
-    def write(self, command):
+    def write(self, command, log=True):
         """Send a SCPI command."""
-        self.log(f">> {command}")
+        if log:
+            self.log(f">> {command}")
         self.scope.write(command)
 
     def query(self, command, timeout=None):
@@ -92,7 +93,7 @@ class ScopeController:
     def capture_temp(self):
         self.scope.timeout = 5000
 
-        self.write(":DISPlay:SNAP?")
+        self.write(":DISPlay:SNAP?", log=False)
 
         data = self.read_ieee_block(self.scope)
 
@@ -105,6 +106,20 @@ class ScopeController:
             os.remove(filename)
         except:
             pass
+
+        with open(filename, "wb") as f:
+            f.write(data)
+
+        return filename
+    
+    def capture_screen(self):
+        self.scope.timeout = 5000
+
+        self.write(":DISPlay:SNAP?", log=True)
+
+        data = self.read_ieee_block(self.scope)
+
+        filename = "cap_scope.png"
 
         with open(filename, "wb") as f:
             f.write(data)
@@ -353,7 +368,7 @@ class ScopeGUI:
         tk.Button(
             self.control_frame,
             text="Capture",
-            command=self.capture_screen
+            command=self.capture_T
         ).grid(row=1, column=2, padx=5)
 
         tk.Button(
@@ -625,27 +640,15 @@ class ScopeGUI:
             self.log_text.see(tk.END)
             self.log_text.config(state="disabled")
         
-    def capture_screen(self): #บันทึกภาพหน้าจอจาก oscilloscope และแสดงข้อความใน status
-        try:
-            if self.scope.scope is None:
-                self.status.config(
-                    text="Please Connect First",
-                    fg="red"
-                )
-                return
+    def capture_T(self):
+        filename = self.scope.capture_screen()
+        img = Image.open(filename)
+        img = img.resize((650,400))
 
-            filename = self.scope.capture_screen()
+        self.photo = ImageTk.PhotoImage(img)
 
-            self.status.config(
-                text=f"Saved : {filename}",
-                fg="green"
-            )
-
-        except Exception as e:
-            self.status.config(
-                text=str(e),
-                fg="red"
-            )
+        self.image_label.config(image=self.photo, text="")
+        self.image_label.image = self.photo
 
     def channel_select(self, channel):
         if channel == 1:
